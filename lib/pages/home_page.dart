@@ -80,7 +80,7 @@ class _HomePageState extends State<HomePage> {
             onChanged: (value) => checkBoxChanged(index),
             deleteFunction: (context) => deleteTask(index),
             editFunction: (context) async {
-              // Define result here
+           
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -95,7 +95,7 @@ class _HomePageState extends State<HomePage> {
               _showToastIfTaskSaved(result);
             },
             taskDate: formatter
-                .format(toDoList[index]['date']), // Pass formatted date
+                .format(toDoList[index]['date']), 
           );
         },
       ),
@@ -127,7 +127,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         onPressed: () async {
-          // Define result here
+          
           final result = await Navigator.push(
             context,
             MaterialPageRoute(

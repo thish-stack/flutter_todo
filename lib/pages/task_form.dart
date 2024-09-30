@@ -31,7 +31,7 @@ class _TaskFormState extends State<TaskForm> {
     _selectedDate = widget.initialDate;
   }
 
-  // Date picker logic
+  // Date picker
   void _presentDatePicker() async {
     final now = DateTime.now();
     final pickedDate = await showDatePicker(
@@ -69,69 +69,6 @@ class _TaskFormState extends State<TaskForm> {
   }
 
   @override
-  // Widget build(BuildContext context) {
-  //   final formatter = DateFormat.yMMMd(); // Date format
-
-  //   return Scaffold(
-  //     appBar: AppBar(
-  //       title: const Text('Add/Edit Task'),
-  //     ),
-  //     body: Padding(
-  //       padding: const EdgeInsets.all(8.0),
-  //       child: Column(
-  //         children: [
-  //           // Task Name Input
-  //           TextField(
-  //             controller: nameController,
-  //             decoration: const InputDecoration(
-  //               hintText: 'Enter your task',
-  //               border: OutlineInputBorder(
-  //                 borderRadius: BorderRadius.all(
-  //                   Radius.circular(10),
-  //                 ),
-  //               ),
-  //             ),
-  //           ),
-  //           const SizedBox(height: 10),
-
-  //           // Date Picker Row
-  //           Row(
-  //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //             children: [
-  //               Text(
-  //                 _selectedDate == null
-  //                     ? 'No date selected'
-  //                     : 'Selected Date: ${formatter.format(_selectedDate!)}',
-  //                 style: const TextStyle(fontSize: 16),
-  //               ),
-  //               IconButton(
-  //                 onPressed: _presentDatePicker,
-  //                 icon: const Icon(Icons.calendar_today),
-  //               ),
-  //             ],
-  //           ),
-  //           const SizedBox(height: 10),
-
-  //           // Save Button
-  //           ElevatedButton(
-  //               child: const Text('Save'),
-  //               onPressed: () {
-  //                 if (nameController.text.trim().isEmpty ||
-  //                     _selectedDate == null) {
-  //                   _showInvalidInputDialog();
-  //                   return;
-  //                 }
-  //                 // Pass the task name and selected date back to HomePage
-  //                 widget.onSaveTask(nameController.text, _selectedDate!);
-
-  //                 Navigator.pop(context); // Return to previous screen
-  //               }),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
-
   Widget build(BuildContext context) {
     final formatter = DateFormat.yMMMd();
 

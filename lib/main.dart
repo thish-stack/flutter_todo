@@ -17,30 +17,30 @@ class MyApp extends StatelessWidget {
         primaryColor: const Color.fromARGB(255, 226, 72, 141),
         scaffoldBackgroundColor: Colors.white,
 
-        // Customize the dialog theme
+       
         dialogTheme: DialogTheme(
           shape: RoundedRectangleBorder(
             borderRadius:
-                BorderRadius.circular(20), // Rounded corners for the dialog
+                BorderRadius.circular(20), 
           ),
-          backgroundColor: Colors.white, // Background color for dialogs
+          backgroundColor: Colors.white, 
           titleTextStyle: const TextStyle(
-            color: Color.fromARGB(255, 226, 72, 141), // Title text color
+            color: Color.fromARGB(255, 226, 72, 141), 
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
           contentTextStyle: const TextStyle(
-            color: Colors.black87, // Content text color
+            color: Colors.black87, 
             fontSize: 16,
           ),
         ),
 
-        // Set up color scheme for buttons in dialogs
+       
         colorScheme: const ColorScheme.light(
           primary:
-              Color.fromARGB(255, 226, 72, 141), // Primary color for buttons
-          onPrimary: Colors.white, // Text color for buttons
-          onSurface: Colors.black, // Text color for other elements
+              Color.fromARGB(255, 226, 72, 141), 
+          onPrimary: Colors.white,
+          onSurface: Colors.black, 
         ),
       ),
     );
