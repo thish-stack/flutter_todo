@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:producthive/models/task_model.dart';
 import 'package:producthive/pages/task_form.dart';
 import 'package:producthive/utils/todo_list.dart';
 
@@ -24,8 +25,9 @@ class _HomePageState extends State<HomePage> {
     {'name': 'Learn Flutter', 'completed': true, 'date': DateTime.now()},
   ];
 
-  final DateFormat formatter = DateFormat.yMMMd(); 
+  // final List<Task> toDoList = [];
 
+  final DateFormat formatter = DateFormat.yMMMd();
 
   void checkBoxChanged(int index) {
     setState(() {
@@ -69,7 +71,9 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Todo'),
+        title: const Text(
+          'Todo',
+        ),
       ),
       body: ListView.builder(
         itemCount: toDoList.length,
@@ -80,7 +84,6 @@ class _HomePageState extends State<HomePage> {
             onChanged: (value) => checkBoxChanged(index),
             deleteFunction: (context) => deleteTask(index),
             editFunction: (context) async {
-           
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -94,13 +97,11 @@ class _HomePageState extends State<HomePage> {
               );
               _showToastIfTaskSaved(result);
             },
-            taskDate: formatter
-                .format(toDoList[index]['date']), 
+            taskDate: formatter.format(toDoList[index]['date']),
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
-       
         backgroundColor: Colors.transparent,
         child: Container(
           width: 60,
@@ -127,7 +128,6 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         onPressed: () async {
-          
           final result = await Navigator.push(
             context,
             MaterialPageRoute(
@@ -137,7 +137,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           );
-          _showToastIfTaskSaved(result); 
+          _showToastIfTaskSaved(result);
         },
       ),
     );

@@ -26,13 +26,13 @@ class _TaskFormState extends State<TaskForm> {
   @override
   void initState() {
     super.initState();
-
     nameController = TextEditingController(text: widget.initialTaskName ?? '');   
     _selectedDate = widget.initialDate;
   }
 
   // Date picker
   void _presentDatePicker() async {
+    
     final now = DateTime.now();
     final pickedDate = await showDatePicker(
       context: context,
@@ -124,8 +124,7 @@ class _TaskFormState extends State<TaskForm> {
             // Save Button
             ElevatedButton(
               onPressed: () {
-                if (nameController.text.trim().isEmpty ||
-                    _selectedDate == null) {
+                if (nameController.text.trim().isEmpty ||  _selectedDate == null) {
                   _showInvalidInputDialog();
                   return;
                 } 
