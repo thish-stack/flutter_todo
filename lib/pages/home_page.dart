@@ -1,11 +1,10 @@
-// homepage.dart
-
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:producthive/models/task_model.dart';
 import 'package:producthive/pages/task_form.dart';
 import 'package:producthive/utils/todo_list.dart';
+import 'package:producthive/database/database_helper.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -15,43 +14,69 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Map<String, dynamic>> toDoList = [
-    {'name': 'Learn Flutter', 'completed': true, 'date': DateTime.now()},
-    {'name': 'Drink Coffee', 'completed': false, 'date': DateTime.now()},
-    {'name': 'Drink Coffee', 'completed': false, 'date': DateTime.now()},
-    {'name': 'Drink Coffee', 'completed': false, 'date': DateTime.now()},
-    {'name': 'Drink Coffee', 'completed': false, 'date': DateTime.now()},
-    {'name': 'Learn Flutter', 'completed': true, 'date': DateTime.now()},
-    {'name': 'Learn Flutter', 'completed': true, 'date': DateTime.now()},
-  ];
-
-  // final List<Task> toDoList = [];
-
+  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   final DateFormat formatter = DateFormat.yMMMd();
 
-  void checkBoxChanged(int index) {
-    setState(() {
-      toDoList[index]['completed'] = !toDoList[index]['completed'];
+  List<Task> toDoList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTasks();
+  }
+
+  Future<void> _loadTasks() async {
+    List<Task> tasks = await _dbHelper.getTasks();
+    // Debugging: Check what tasks are loaded
+    print('Loaded Tasks: ${tasks.length}'); // Debugging statement
+    for (var task in tasks) {
+      print(
+          'Task: ${task.name}, Completed: ${task.completed}'); // Debugging statement
+    }
+    print('db load tasks called');
+    setState(() { 
+      toDoList = tasks;
     });
   }
 
-  void saveNewTask(String taskName, DateTime date) {
-    setState(() {
-      toDoList.add({'name': taskName, 'completed': false, 'date': date});
-    });
+  Future<void> saveNewTask(String taskName, DateTime date) async {
+    Task newTask = Task(
+      name: taskName,
+      completed: false,
+      date: date,
+    );
+    
+    try {
+  await _dbHelper.addTask(newTask);
+} catch (e) {
+  print('Error adding task: $e');
+}
+
+    await _loadTasks(); // Reload tasks after insertion
+    
   }
 
-  void updateTask(int index, String updatedTaskName, DateTime date) {
-    setState(() {
-      toDoList[index]['name'] = updatedTaskName;
-      toDoList[index]['date'] = date;
-    });
+  Future<void> updateTask(
+      int index, String updatedTaskName, DateTime date) async {
+    Task updatedTask = toDoList[index];
+    updatedTask.name = updatedTaskName;
+    updatedTask.date = date;
+
+    await _dbHelper.updateTask(updatedTask);
+    await _loadTasks(); // Reload tasks after update
   }
 
-  void deleteTask(int index) {
+  Future<void> deleteTask(int index) async {
+    await _dbHelper.deleteTask(toDoList[index].id!);
+    await _loadTasks(); // Reload tasks after deletion
+  }
+
+  void checkBoxChanged(int index) async {
     setState(() {
-      toDoList.removeAt(index);
+      toDoList[index].completed = !toDoList[index].completed;
     });
+    await _dbHelper.updateTask(toDoList[index]);
+    await _loadTasks(); // Reload tasks after updating the checkbox state
   }
 
   void _showToastIfTaskSaved(String? result) {
@@ -71,16 +96,14 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text(
-          'Todo',
-        ),
+        title: const Text('Todo'),
       ),
       body: ListView.builder(
         itemCount: toDoList.length,
         itemBuilder: (BuildContext context, int index) {
           return TodoList(
-            taskName: toDoList[index]['name'],
-            taskCompleted: toDoList[index]['completed'],
+            taskName: toDoList[index].name,
+            taskCompleted: toDoList[index].completed,
             onChanged: (value) => checkBoxChanged(index),
             deleteFunction: (context) => deleteTask(index),
             editFunction: (context) async {
@@ -90,14 +113,14 @@ class _HomePageState extends State<HomePage> {
                   builder: (context) => TaskForm(
                     onSaveTask: (updatedTaskName, updatedDate) =>
                         updateTask(index, updatedTaskName, updatedDate),
-                    initialTaskName: toDoList[index]['name'],
-                    initialDate: toDoList[index]['date'],
+                    initialTaskName: toDoList[index].name,
+                    initialDate: toDoList[index].date,
                   ),
                 ),
               );
               _showToastIfTaskSaved(result);
             },
-            taskDate: formatter.format(toDoList[index]['date']),
+            taskDate: formatter.format(toDoList[index].date),
           );
         },
       ),
@@ -117,7 +140,6 @@ class _HomePageState extends State<HomePage> {
               BoxShadow(
                 color: Colors.pink.withOpacity(0.3),
                 blurRadius: 10,
-                // spreadRadius: 5,
                 offset: const Offset(0, 5),
               ),
             ],
