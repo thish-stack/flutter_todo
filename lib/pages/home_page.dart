@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
+import 'package:producthive/database/database_helper.dart';
 import 'package:producthive/models/task_model.dart';
 import 'package:producthive/pages/task_form.dart';
 import 'package:producthive/utils/todo_list.dart';
-import 'package:producthive/database/database_helper.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -34,7 +35,7 @@ class _HomePageState extends State<HomePage> {
           'Task: ${task.name}, Completed: ${task.completed}'); // Debugging statement
     }
     print('db load tasks called');
-    setState(() { 
+    setState(() {
       toDoList = tasks;
     });
   }
@@ -45,15 +46,14 @@ class _HomePageState extends State<HomePage> {
       completed: false,
       date: date,
     );
-    
+
     try {
-  await _dbHelper.addTask(newTask);
-} catch (e) {
-  print('Error adding task: $e');
-}
+      await _dbHelper.addTask(newTask);
+    } catch (e) {
+      print('Error adding task: $e');
+    }
 
     await _loadTasks(); // Reload tasks after insertion
-    
   }
 
   Future<void> updateTask(
@@ -98,32 +98,58 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('Todo'),
       ),
-      body: ListView.builder(
-        itemCount: toDoList.length,
-        itemBuilder: (BuildContext context, int index) {
-          return TodoList(
-            taskName: toDoList[index].name,
-            taskCompleted: toDoList[index].completed,
-            onChanged: (value) => checkBoxChanged(index),
-            deleteFunction: (context) => deleteTask(index),
-            editFunction: (context) async {
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => TaskForm(
-                    onSaveTask: (updatedTaskName, updatedDate) =>
-                        updateTask(index, updatedTaskName, updatedDate),
-                    initialTaskName: toDoList[index].name,
-                    initialDate: toDoList[index].date,
-                  ),
+      body: toDoList.isEmpty
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 1, bottom: 130),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Lottie.asset(
+                      'assets/taskloading.json',
+                      width: MediaQuery.of(context).size.width * 1,
+                      height: MediaQuery.of(context).size.height * 0.4,
+                      fit: BoxFit.contain,
+                    ),
+                    const SizedBox(height: 0),
+                    const Text(
+                      'No tasks available, add a new task!',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.black54,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
-              );
-              _showToastIfTaskSaved(result);
-            },
-            taskDate: formatter.format(toDoList[index].date),
-          );
-        },
-      ),
+              ),
+            )
+          : ListView.builder(
+              itemCount: toDoList.length,
+              itemBuilder: (BuildContext context, int index) {
+                return TodoList(
+                  taskName: toDoList[index].name,
+                  taskCompleted: toDoList[index].completed,
+                  onChanged: (value) => checkBoxChanged(index),
+                  deleteFunction: (context) => deleteTask(index),
+                  editFunction: (context) async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TaskForm(
+                          onSaveTask: (updatedTaskName, updatedDate) =>
+                              updateTask(index, updatedTaskName, updatedDate),
+                          initialTaskName: toDoList[index].name,
+                          initialDate: toDoList[index].date,
+                        ),
+                      ),
+                    );
+                    _showToastIfTaskSaved(result);
+                  },
+                  taskDate: formatter.format(toDoList[index].date),
+                );
+              },
+            ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.transparent,
         child: Container(
