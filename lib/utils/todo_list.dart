@@ -90,22 +90,27 @@ class TodoList extends StatelessWidget {
                   showDialog(
                     context: context,
                     builder: (ctx) => AlertDialog(
-                      title: const Text('Delete Task'),
+                      title: const Row(children: [
+                        Icon(
+                          Icons.warning,
+                          color: Colors.red,
+                        ),
+                        SizedBox(width: 8),
+                        Text('Delete Task ?'),
+                      ]),
                       content: const Text(
                           'Are you sure you want to delete this task?'),
                       actions: [
                         TextButton(
                           onPressed: () {
-                            Navigator.of(ctx).pop(); // Close the dialog
+                            Navigator.of(ctx).pop();
                           },
                           child: const Text('Cancel'),
                         ),
                         TextButton(
                           onPressed: () {
-                            // Call your delete function here
-                            deleteFunction!(
-                                context); // Assuming deleteFunction is defined
-                            Navigator.of(ctx).pop(); // Close the dialog
+                            deleteFunction!(context);
+                            Navigator.of(ctx).pop();
                           },
                           child: const Text('Delete'),
                         ),
@@ -125,14 +130,14 @@ class TodoList extends StatelessWidget {
               gradient: taskCompleted
                   ? const LinearGradient(
                       colors: [
-                        // Muted Pink
+                       
 
-                        Color.fromARGB(255, 245, 111, 173), // Muted Pink
+                        Color.fromARGB(255, 245, 111, 173), 
                         Color.fromARGB(255, 244, 136, 188),
                       ],
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
-                    ) // Inverted gradient for completed tasks
+                    ) 
                   : const LinearGradient(
                       colors: [
                         Color(0xFFE2267F),

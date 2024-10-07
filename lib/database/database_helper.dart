@@ -3,10 +3,10 @@ import 'package:producthive/models/task_model.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
+  DatabaseHelper._privateConstructor();
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
   static Database? _database;
 
-  DatabaseHelper._privateConstructor();
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -17,6 +17,7 @@ class DatabaseHelper {
 
   Future<Database> _initDatabase() async {
     String path = join(await getDatabasesPath(), 'tasks.db');
+    print("Database Path: $path");
     print('db opened');
     return await openDatabase(
       path,
@@ -41,18 +42,27 @@ class DatabaseHelper {
     );
   }
 
-  Future<List<Task>> getTasks() async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('tasks');
-    return List.generate(maps.length, (i) {
-      return Task(
-        id: maps[i]['id'],
-        name: maps[i]['name'],
-        completed: maps[i]['completed'] == 1,
-        date: DateTime.parse(maps[i]['date']),
+ Future<List<Task>> getTasks() async {
+  // Get the database instance
+  final db = await database;
+
+  // Query the 'tasks' table, ordering by 'id' in ascending order
+  List<Map<String, dynamic>> results = await db.query(
+    "tasks",
       );
-    });
+
+  // Create a list to hold the Task objects
+  List<Task> tasks = [];
+
+  // Loop through the results and convert each map to a Task object
+  for (var result in results) {
+    Task task = Task.fromMap(result); 
+    tasks.add(task); 
   }
+
+  // Return the list of Task objects
+  return tasks;
+}
 
   Future<void> updateTask(Task task) async {
     final db = await database;

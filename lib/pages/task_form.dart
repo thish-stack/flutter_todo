@@ -5,12 +5,14 @@ class TaskForm extends StatefulWidget {
   final Function(String, DateTime) onSaveTask;
   final String? initialTaskName;
   final DateTime? initialDate;
+  final bool isEditing;
 
   const TaskForm({
     super.key,
     required this.onSaveTask,
     this.initialTaskName,
     this.initialDate,
+    required this.isEditing,
   });
 
   @override
@@ -58,7 +60,7 @@ class _TaskFormState extends State<TaskForm> {
             onPressed: () {
               Navigator.pop(ctx);
             },
-            child: const Text('Okay'),
+            child: const Text('OK'),
           ),
         ],
       ),
@@ -71,7 +73,7 @@ class _TaskFormState extends State<TaskForm> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Task'),
+        title: Text(widget.isEditing ? 'Edit Task' : 'Add Task'),
         backgroundColor: const Color(0xFFE94E97),
       ),
       body: Padding(
@@ -126,7 +128,7 @@ class _TaskFormState extends State<TaskForm> {
                   return;
                 }
 
-                widget.onSaveTask(nameController.text, _selectedDate!);
+                widget.onSaveTask(nameController.text.trim(), _selectedDate!);
 
                 Navigator.pop(context, 'Task saved successfully!');
               },

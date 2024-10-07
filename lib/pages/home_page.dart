@@ -41,7 +41,7 @@ class _HomePageState extends State<HomePage> {
     );
 
     await _dbHelper.addTask(newTask);
-    await _loadTasks(); // Reload tasks after insertion
+    await _loadTasks();
   }
 
   Future<void> updateTask(
@@ -51,18 +51,24 @@ class _HomePageState extends State<HomePage> {
     updatedTask.date = date;
 
     await _dbHelper.updateTask(updatedTask);
-    await _loadTasks(); // Reload tasks after update
+    await _loadTasks();
   }
 
   Future<void> deleteTask(int index) async {
     await _dbHelper.deleteTask(toDoList[index].id!);
-    await _loadTasks(); // Reload tasks after deletion
+    await _loadTasks();
+    Fluttertoast.showToast(
+      msg: "task deleted successfully!",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: Colors.green,
+      textColor: Colors.white,
+    );
   }
 
   Future<void> deleteAllTasks() async {
-    await _dbHelper
-        .deleteAllTasks(); // Assuming you have a deleteAllTasks method in your DatabaseHelper class
-    await _loadTasks(); // Reload tasks after deletion
+    await _dbHelper.deleteAllTasks();
+    await _loadTasks();
     Fluttertoast.showToast(
       msg: "All tasks deleted successfully!",
       toastLength: Toast.LENGTH_SHORT,
@@ -81,19 +87,32 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> deleteConfirmDialog(BuildContext context, String action) async {
+    if (toDoList.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No tasks to delete.')),
+      );
+      return;
+    }
     final bool isClearAll = (action == "all");
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(isClearAll ? "Delete All Tasks" : "Confirm Delete Task"),
-        content: Text(isClearAll
-            ? "Are you sure you want to delete all tasks? "
-            : "Are you sure you want to delete this task? This action cannot be undone."),
+        title: const Row(
+            // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Icon(
+                Icons.warning,
+                color: Colors.red,
+              ),
+              SizedBox(width: 8),
+              Text('Delete All Tasks ?'),
+            ]),
+        content: const Text('Are you sure you want to delete all tasks?'),
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.pop(ctx);
+              Navigator.of(ctx).pop();
             },
             child: const Text('Cancel'),
           ),
@@ -101,10 +120,9 @@ class _HomePageState extends State<HomePage> {
             onPressed: () {
               if (isClearAll) {
                 deleteAllTasks();
-              } else {
-                // deleteTask(context);
               }
-              Navigator.pop(ctx);
+
+              Navigator.of(ctx).pop();
             },
             child: const Text('Delete'),
           ),
@@ -188,6 +206,7 @@ class _HomePageState extends State<HomePage> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => TaskForm(
+                          isEditing: true,
                           onSaveTask: (updatedTaskName, updatedDate) =>
                               updateTask(index, updatedTaskName, updatedDate),
                           initialTaskName: toDoList[index].name,
@@ -231,6 +250,7 @@ class _HomePageState extends State<HomePage> {
             context,
             MaterialPageRoute(
               builder: (context) => TaskForm(
+                isEditing: false,
                 onSaveTask: (newTaskName, newDate) =>
                     saveNewTask(newTaskName, newDate),
               ),
