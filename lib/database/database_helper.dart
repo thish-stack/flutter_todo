@@ -1,6 +1,6 @@
-import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:producthive/models/task_model.dart';
+import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
@@ -16,20 +16,19 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
-  String path = join(await getDatabasesPath(), 'tasks.db');
-  print('db opened');
-  return await openDatabase(
-    path,
-    version: 1,
-    onCreate: (db, version) {
-      print("db created");
-      return db.execute(
-        '''CREATE TABLE tasks (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, completed INTEGER, date TEXT)''',
-      );
-    },
-  );
-}
-
+    String path = join(await getDatabasesPath(), 'tasks.db');
+    print('db opened');
+    return await openDatabase(
+      path,
+      version: 1,
+      onCreate: (db, version) {
+        print("db created");
+        return db.execute(
+          '''CREATE TABLE tasks (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, completed INTEGER, date TEXT)''',
+        );
+      },
+    );
+  }
 
   Future<void> addTask(Task task) async {
     print('db add task called');
@@ -42,19 +41,18 @@ class DatabaseHelper {
     );
   }
 
-Future<List<Task>> getTasks() async {
-  final db = await database;
-  final List<Map<String, dynamic>> maps = await db.query('tasks');
-  return List.generate(maps.length, (i) {
-    return Task(
-      id: maps[i]['id'],
-      name: maps[i]['name'],
-      completed: maps[i]['completed'] == 1,
-      date: DateTime.parse(maps[i]['date']),
-    );
-  });
-}
-
+  Future<List<Task>> getTasks() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('tasks');
+    return List.generate(maps.length, (i) {
+      return Task(
+        id: maps[i]['id'],
+        name: maps[i]['name'],
+        completed: maps[i]['completed'] == 1,
+        date: DateTime.parse(maps[i]['date']),
+      );
+    });
+  }
 
   Future<void> updateTask(Task task) async {
     final db = await database;
@@ -73,5 +71,10 @@ Future<List<Task>> getTasks() async {
       where: 'id = ?',
       whereArgs: [id],
     );
+  }
+
+  Future<void> deleteAllTasks() async {
+    final db = await database;
+    await db.delete('tasks');
   }
 }

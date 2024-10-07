@@ -28,13 +28,6 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadTasks() async {
     List<Task> tasks = await _dbHelper.getTasks();
-    // Debugging: Check what tasks are loaded
-    print('Loaded Tasks: ${tasks.length}'); // Debugging statement
-    for (var task in tasks) {
-      print(
-          'Task: ${task.name}, Completed: ${task.completed}'); // Debugging statement
-    }
-    print('db load tasks called');
     setState(() {
       toDoList = tasks;
     });
@@ -47,12 +40,7 @@ class _HomePageState extends State<HomePage> {
       date: date,
     );
 
-    try {
-      await _dbHelper.addTask(newTask);
-    } catch (e) {
-      print('Error adding task: $e');
-    }
-
+    await _dbHelper.addTask(newTask);
     await _loadTasks(); // Reload tasks after insertion
   }
 
@@ -71,12 +59,58 @@ class _HomePageState extends State<HomePage> {
     await _loadTasks(); // Reload tasks after deletion
   }
 
+  Future<void> deleteAllTasks() async {
+    await _dbHelper
+        .deleteAllTasks(); // Assuming you have a deleteAllTasks method in your DatabaseHelper class
+    await _loadTasks(); // Reload tasks after deletion
+    Fluttertoast.showToast(
+      msg: "All tasks deleted successfully!",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: Colors.green,
+      textColor: Colors.white,
+    );
+  }
+
   void checkBoxChanged(int index) async {
     setState(() {
       toDoList[index].completed = !toDoList[index].completed;
     });
     await _dbHelper.updateTask(toDoList[index]);
-    await _loadTasks(); // Reload tasks after updating the checkbox state
+    await _loadTasks();
+  }
+
+  Future<void> deleteConfirmDialog(BuildContext context, String action) async {
+    final bool isClearAll = (action == "all");
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(isClearAll ? "Delete All Tasks" : "Confirm Delete Task"),
+        content: Text(isClearAll
+            ? "Are you sure you want to delete all tasks? "
+            : "Are you sure you want to delete this task? This action cannot be undone."),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+            },
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (isClearAll) {
+                deleteAllTasks();
+              } else {
+                // deleteTask(context);
+              }
+              Navigator.pop(ctx);
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showToastIfTaskSaved(String? result) {
@@ -97,6 +131,23 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Todo'),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'Clear All') {
+                deleteConfirmDialog(context, "all");
+              }
+            },
+            itemBuilder: (BuildContext context) {
+              return [
+                const PopupMenuItem<String>(
+                  value: 'Clear All',
+                  child: Text('Clear All'),
+                ),
+              ];
+            },
+          ),
+        ],
       ),
       body: toDoList.isEmpty
           ? Center(

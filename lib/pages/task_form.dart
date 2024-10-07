@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-
 class TaskForm extends StatefulWidget {
-  final Function(String, DateTime)
-      onSaveTask; 
-  final String? initialTaskName; 
-  final DateTime? initialDate; 
+  final Function(String, DateTime) onSaveTask;
+  final String? initialTaskName;
+  final DateTime? initialDate;
 
   const TaskForm({
     super.key,
@@ -26,13 +24,12 @@ class _TaskFormState extends State<TaskForm> {
   @override
   void initState() {
     super.initState();
-    nameController = TextEditingController(text: widget.initialTaskName ?? '');   
+    nameController = TextEditingController(text: widget.initialTaskName ?? '');
     _selectedDate = widget.initialDate;
   }
 
   // Date picker
   void _presentDatePicker() async {
-    
     final now = DateTime.now();
     final pickedDate = await showDatePicker(
       context: context,
@@ -102,7 +99,6 @@ class _TaskFormState extends State<TaskForm> {
             GestureDetector(
               onTap: _presentDatePicker,
               child: AbsorbPointer(
-               
                 child: TextField(
                   decoration: InputDecoration(
                     filled: true,
@@ -124,15 +120,15 @@ class _TaskFormState extends State<TaskForm> {
             // Save Button
             ElevatedButton(
               onPressed: () {
-                if (nameController.text.trim().isEmpty ||  _selectedDate == null) {
+                if (nameController.text.trim().isEmpty ||
+                    _selectedDate == null) {
                   _showInvalidInputDialog();
                   return;
-                } 
+                }
 
-               
                 widget.onSaveTask(nameController.text, _selectedDate!);
 
-               Navigator.pop(context, 'Task saved successfully!');
+                Navigator.pop(context, 'Task saved successfully!');
               },
               style: ElevatedButton.styleFrom(
                 shape: const StadiumBorder(),
