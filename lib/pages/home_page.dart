@@ -6,6 +6,7 @@ import 'package:producthive/database/database_helper.dart';
 import 'package:producthive/models/task_model.dart';
 import 'package:producthive/pages/task_form.dart';
 import 'package:producthive/utils/todo_list.dart';
+import 'package:shimmer/shimmer.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,6 +20,7 @@ class _HomePageState extends State<HomePage> {
   final DateFormat formatter = DateFormat.yMMMd();
 
   List<Task> toDoList = [];
+  bool isLoading = true;  // New loading state
 
   @override
   void initState() {
@@ -27,9 +29,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _loadTasks() async {
+    setState(() {
+      isLoading = true;  // Set loading to true before fetching data
+    });
+
     List<Task> tasks = await _dbHelper.getTasks();
+
     setState(() {
       toDoList = tasks;
+      isLoading = false;  // Set loading to false after data is fetched
     });
   }
 
@@ -58,7 +66,7 @@ class _HomePageState extends State<HomePage> {
     await _dbHelper.deleteTask(toDoList[index].id!);
     await _loadTasks();
     Fluttertoast.showToast(
-      msg: "task deleted successfully!",
+      msg: "Task deleted successfully!",
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.BOTTOM,
       backgroundColor: Colors.green,
@@ -99,15 +107,15 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Row(
-            // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(
-                Icons.warning,
-                color: Colors.red,
-              ),
-              SizedBox(width: 8),
-              Text('Delete All Tasks ?'),
-            ]),
+          children: [
+            Icon(
+              Icons.warning,
+              color: Colors.red,
+            ),
+            SizedBox(width: 8),
+            Text('Delete All Tasks?'),
+          ],
+        ),
         content: const Text('Are you sure you want to delete all tasks?'),
         actions: [
           TextButton(
@@ -143,6 +151,29 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Shimmer loading effect
+  Widget buildShimmer() {
+    return ListView.builder(
+      itemCount: 10,  // Example number of shimmer items
+      itemBuilder: (context, index) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+          child: Shimmer.fromColors(
+            baseColor: Colors.grey[200]!,
+            highlightColor: Colors.grey[100]!,
+            child: Container(
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -167,59 +198,61 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: toDoList.isEmpty
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 1, bottom: 130),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Lottie.asset(
-                      'assets/taskloading.json',
-                      width: MediaQuery.of(context).size.width * 1,
-                      height: MediaQuery.of(context).size.height * 0.4,
-                      fit: BoxFit.contain,
-                    ),
-                    const SizedBox(height: 0),
-                    const Text(
-                      'No tasks available, add a new task!',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.black54,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          : ListView.builder(
-              itemCount: toDoList.length,
-              itemBuilder: (BuildContext context, int index) {
-                return TodoList(
-                  taskName: toDoList[index].name,
-                  taskCompleted: toDoList[index].completed,
-                  onChanged: (value) => checkBoxChanged(index),
-                  deleteFunction: (context) => deleteTask(index),
-                  editFunction: (context) async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => TaskForm(
-                          isEditing: true,
-                          onSaveTask: (updatedTaskName, updatedDate) =>
-                              updateTask(index, updatedTaskName, updatedDate),
-                          initialTaskName: toDoList[index].name,
-                          initialDate: toDoList[index].date,
+      body: isLoading
+          ? buildShimmer()  // Show shimmer when loading
+          : toDoList.isEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 1, bottom: 130),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Lottie.asset(
+                          'assets/taskloading.json',
+                          width: MediaQuery.of(context).size.width * 1,
+                          height: MediaQuery.of(context).size.height * 0.4,
+                          fit: BoxFit.contain,
                         ),
-                      ),
+                        const SizedBox(height: 0),
+                        const Text(
+                          'No tasks available, add a new task!',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.black54,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : ListView.builder(
+                  itemCount: toDoList.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return TodoList(
+                      taskName: toDoList[index].name,
+                      taskCompleted: toDoList[index].completed,
+                      onChanged: (value) => checkBoxChanged(index),
+                      deleteFunction: (context) => deleteTask(index),
+                      editFunction: (context) async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TaskForm(
+                              isEditing: true,
+                              onSaveTask: (updatedTaskName, updatedDate) =>
+                                  updateTask(index, updatedTaskName, updatedDate),
+                              initialTaskName: toDoList[index].name,
+                              initialDate: toDoList[index].date,
+                            ),
+                          ),
+                        );
+                        _showToastIfTaskSaved(result);
+                      },
+                      taskDate: formatter.format(toDoList[index].date),
                     );
-                    _showToastIfTaskSaved(result);
                   },
-                  taskDate: formatter.format(toDoList[index].date),
-                );
-              },
-            ),
+                ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.transparent,
         child: Container(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:producthive/pages/home_page.dart';
+import 'package:producthive/splash_screen.dart';
 
 void main() {
   runApp(const MyApp());
