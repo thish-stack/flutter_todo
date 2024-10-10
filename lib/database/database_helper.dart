@@ -35,31 +35,29 @@ class DatabaseHelper {
     print('db add task called');
     print('db get tasks: ${getTasks()} are');
     final db = await database;
-    await db.insert(
-      'tasks',
-      task.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+   try {
+  await db.insert(
+    'tasks',
+    task.toMap(),
+    conflictAlgorithm: ConflictAlgorithm.replace,
+  );
+} catch (e) {
+  print("Error inserting task: $e");
+}
   }
 
  Future<List<Task>> getTasks() async {
-  // Get the database instance
+ 
   final db = await database;
-
-  // Query the 'tasks' table, ordering by 'id' in ascending order
-  List<Map<String, dynamic>> results = await db.query(
-    "tasks",
-      );
+  List<Map<String, dynamic>> results = await db.query( "tasks",);
 
   // Create a list to hold the Task objects
   List<Task> tasks = [];
-
   // Loop through the results and convert each map to a Task object
   for (var result in results) {
     Task task = Task.fromMap(result); 
     tasks.add(task); 
   }
-
   // Return the list of Task objects
   return tasks;
 }
