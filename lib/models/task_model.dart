@@ -5,12 +5,14 @@ class Task {
   String name;
   bool completed;
   DateTime date;
+  String? description; 
 
   Task({
     this.id, 
     required this.name,
     required this.completed,
     required this.date,
+    this.description,
   });
 
   //method to create a Task from a Map
@@ -20,6 +22,7 @@ static Task fromMap(Map<String, dynamic> map) {
     name: map['name'] as String,
     completed: map['completed'] == 1,
     date: DateTime.parse(map['date']),
+    description: map['description'],
   );
 }
 
@@ -31,6 +34,7 @@ static Task fromMap(Map<String, dynamic> map) {
       'name': name,
       'completed': completed,
       'date': DateFormat('yyyy-MM-dd').format(date),
+      'description': description,
     };
   }
 }

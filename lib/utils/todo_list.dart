@@ -10,6 +10,7 @@ class TodoList extends StatelessWidget {
     required this.deleteFunction,
     required this.editFunction,
     required this.taskDate,
+    required this.taskDescription,
   });
 
   final String taskName;
@@ -18,6 +19,7 @@ class TodoList extends StatelessWidget {
   final Function(BuildContext)? deleteFunction;
   final Function(BuildContext)? editFunction;
   final String taskDate;
+  final String? taskDescription; 
 
   void _showTaskDetailsBottomSheet(BuildContext context) {
     showModalBottomSheet(
@@ -61,6 +63,23 @@ class TodoList extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 taskDate,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Task Description:',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).primaryColor,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                taskDescription ?? 'No description provided',
                 style: const TextStyle(
                   fontSize: 16,
                   color: Colors.black,

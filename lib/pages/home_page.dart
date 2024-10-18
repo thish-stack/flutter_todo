@@ -20,7 +20,7 @@ class _HomePageState extends State<HomePage> {
   final DateFormat formatter = DateFormat.yMMMd();
 
   List<Task> toDoList = [];
-  bool isLoading = true;  // New loading state
+  bool isLoading = true; // New loading state
 
   @override
   void initState() {
@@ -30,33 +30,45 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadTasks() async {
     setState(() {
-      isLoading = true;  // Set loading to true before fetching data
+      isLoading = true; // Set loading to true before fetching data
     });
 
-    List<Task> tasks = await _dbHelper.getTasks();
-
-    setState(() {
-      toDoList = tasks;
-      isLoading = false;  // Set loading to false after data is fetched
-    });
+    try {
+      List<Task> retrievedTasks = await _dbHelper.getTasks(); // Ensure this method retrieves tasks from the DB
+      setState(() {
+        toDoList = retrievedTasks;
+      isLoading = false; // Set loading to false after data is fetched // Update the state with the retrieved tasks
+      });
+    } catch (e) {
+      print("Error retrieving tasks: $e");
+    }
+   
   }
 
-  Future<void> saveNewTask(String taskName, DateTime date) async {
+  Future<void> saveNewTask(
+      String taskName, DateTime date, String? description) async {
     Task newTask = Task(
       name: taskName,
       completed: false,
       date: date,
+      description: description,
     );
 
     await _dbHelper.addTask(newTask);
+     print("New task added: ${newTask.name}");
     await _loadTasks();
   }
 
   Future<void> updateTask(
-      int index, String updatedTaskName, DateTime date) async {
+    int index,
+    String updatedTaskName,
+    DateTime date,
+    String? description,
+  ) async {
     Task updatedTask = toDoList[index];
     updatedTask.name = updatedTaskName;
     updatedTask.date = date;
+    updatedTask.description = description;
 
     await _dbHelper.updateTask(updatedTask);
     await _loadTasks();
@@ -154,7 +166,7 @@ class _HomePageState extends State<HomePage> {
   // Shimmer loading effect
   Widget buildShimmer() {
     return ListView.builder(
-      itemCount: 10,  // Example number of shimmer items
+      itemCount: 10, // Example number of shimmer items
       itemBuilder: (context, index) {
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
@@ -199,7 +211,7 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       body: isLoading
-          ? buildShimmer()  // Show shimmer when loading
+          ? buildShimmer() // Show shimmer when loading
           : toDoList.isEmpty
               ? Center(
                   child: Padding(
@@ -240,16 +252,20 @@ class _HomePageState extends State<HomePage> {
                           MaterialPageRoute(
                             builder: (context) => TaskForm(
                               isEditing: true,
-                              onSaveTask: (updatedTaskName, updatedDate) =>
-                                  updateTask(index, updatedTaskName, updatedDate),
+                              onSaveTask:
+                                  (updatedTaskName, updatedDate, description) =>
+                                      updateTask(index, updatedTaskName,
+                                          updatedDate, description),
                               initialTaskName: toDoList[index].name,
                               initialDate: toDoList[index].date,
+                              initialDescription: toDoList[index].description,
                             ),
                           ),
                         );
                         _showToastIfTaskSaved(result);
                       },
                       taskDate: formatter.format(toDoList[index].date),
+                      taskDescription: toDoList[index].description,
                     );
                   },
                 ),
@@ -284,8 +300,8 @@ class _HomePageState extends State<HomePage> {
             MaterialPageRoute(
               builder: (context) => TaskForm(
                 isEditing: false,
-                onSaveTask: (newTaskName, newDate) =>
-                    saveNewTask(newTaskName, newDate),
+                onSaveTask: (newTaskName, newDate, description) =>
+                    saveNewTask(newTaskName, newDate, description),
               ),
             ),
           );
