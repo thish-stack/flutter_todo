@@ -1,6 +1,10 @@
+// database_helper.dart
+
 import 'package:path/path.dart';
 import 'package:producthive/models/task_model.dart';
 import 'package:sqflite/sqflite.dart';
+import 'database_constants.dart';
+import 'database_queries.dart';
 
 class DatabaseHelper {
   DatabaseHelper._privateConstructor();
@@ -15,30 +19,24 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
-    String path = join(await getDatabasesPath(), 'tasks.db');
+    String path =
+        join(await getDatabasesPath(), DatabaseConstants.databaseName);
     print("Database Path: $path");
     print('db opened');
+
     return await openDatabase(
       path,
-      version: 2, // Incremented version
-      onCreate: (db, version) {
-        print("db created");
-        return db.execute(
-          '''CREATE TABLE tasks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, 
-            name TEXT, 
-            completed INTEGER, 
-            date TEXT,
-            description TEXT  -- New column added here
-          )''',
-        );
+      version: DatabaseQueries.migrations.length +
+          1, // Version based on migration count
+      onCreate: (Database db, int version) async {
+        for (var script in DatabaseQueries.initialScript) {
+          await db.execute(script);
+        }
       },
-      onUpgrade: (db, oldVersion, newVersion) async {
+      onUpgrade: (Database db, int oldVersion, int newVersion) async {
         print('onUpgrade called from $oldVersion to $newVersion');
-        if (oldVersion < 2) {
-          await db.execute(
-            '''ALTER TABLE tasks ADD COLUMN description TEXT''',
-          );
+        for (var i = oldVersion - 1; i <= newVersion - 1; i++) {
+          await db.execute(DatabaseQueries.migrations[i]);
         }
       },
     );
@@ -46,14 +44,14 @@ class DatabaseHelper {
 
   Future<void> addTask(Task task) async {
     print('db add task called');
+    print('db get tasks: ${getTasks()} are');
     final db = await database;
     try {
-      final data = await db.insert(
-        'tasks',
+      await db.insert(
+        DatabaseConstants.tableName,
         task.toMap(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
-      print('New task added: $data');
     } catch (e) {
       print("Error inserting task: $e");
     }
@@ -61,19 +59,27 @@ class DatabaseHelper {
 
   Future<List<Task>> getTasks() async {
     final db = await database;
-    List<Map<String, dynamic>> results = await db.query("tasks");
+    final List<Map<String, dynamic>> maps =
+        await db.query(DatabaseConstants.tableName);
 
-    // Convert the result to a list of Task objects
-    List<Task> tasks = results.map((result) => Task.fromMap(result)).toList();
-    return tasks;
+    return List.generate(maps.length, (i) {
+      return Task(
+        id: maps[i][DatabaseConstants.columnId],
+        name: maps[i][DatabaseConstants.columnName],
+        completed: maps[i][DatabaseConstants.columnCompleted] == 1,
+        date: DateTime.parse(maps[i][DatabaseConstants.columnDate]),
+        description: maps[i]
+            [DatabaseConstants.columnDescription], // Make sure this is correct
+      );
+    });
   }
 
   Future<void> updateTask(Task task) async {
     final db = await database;
     await db.update(
-      'tasks',
+      DatabaseConstants.tableName,
       task.toMap(),
-      where: 'id = ?',
+      where: '${DatabaseConstants.columnId} = ?',
       whereArgs: [task.id],
     );
   }
@@ -81,14 +87,14 @@ class DatabaseHelper {
   Future<void> deleteTask(int id) async {
     final db = await database;
     await db.delete(
-      'tasks',
-      where: 'id = ?',
+      DatabaseConstants.tableName,
+      where: '${DatabaseConstants.columnId} = ?',
       whereArgs: [id],
     );
   }
 
   Future<void> deleteAllTasks() async {
     final db = await database;
-    await db.delete('tasks');
+    await db.delete(DatabaseConstants.tableName);
   }
 }
