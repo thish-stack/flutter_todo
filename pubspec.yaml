@@ -39,7 +39,22 @@ dependencies:
   intl: ^0.19.0
   tutorial_coach_mark: ^1.2.11
   fluttertoast: ^8.2.8
-  
+  sqflite: 
+  path: 
+  lottie: ^3.1.2
+  flutter_native_splash: ^2.4.1
+  shimmer: ^3.0.0
+  http: ^1.2.2
+  logger: ^2.4.0
+
+
+flutter_native_splash:
+  color: "#ffffff" # Background color of splash screen
+  image: assets/logo1640.png # Path to your logo image
+  android: true
+  android_12:
+    color: "#ffffff" # Background color for Android 12+
+    image: assets/logo1640.png # Image for Android 12+
 
 dev_dependencies:
   flutter_test:
@@ -64,8 +79,12 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
+  assets:
+    - assets/taskloading.json
+    - assets/hbive.png
+    - assets/logo.jpg
+    - assets/logo1.png
+    - assets/logo1640.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

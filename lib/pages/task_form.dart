@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-
 class TaskForm extends StatefulWidget {
-  final Function(String, DateTime)
-      onSaveTask; 
-  final String? initialTaskName; 
-  final DateTime? initialDate; 
+  final Function(String, DateTime,String?,) onSaveTask; // Updated to pass description
+  final String? initialTaskName;
+  final String? initialDescription; // For editing description
+  final DateTime? initialDate;
+  final bool isEditing;
 
   const TaskForm({
     super.key,
     required this.onSaveTask,
     this.initialTaskName,
+    this.initialDescription,
     this.initialDate,
+    required this.isEditing,
   });
 
   @override
@@ -21,18 +23,20 @@ class TaskForm extends StatefulWidget {
 
 class _TaskFormState extends State<TaskForm> {
   late TextEditingController nameController;
+  late TextEditingController descriptionController; // New Controller
   DateTime? _selectedDate;
 
   @override
   void initState() {
     super.initState();
-    nameController = TextEditingController(text: widget.initialTaskName ?? '');   
+    nameController = TextEditingController(text: widget.initialTaskName ?? '');
+    descriptionController =
+        TextEditingController(text: widget.initialDescription ?? '');
     _selectedDate = widget.initialDate;
   }
 
   // Date picker
   void _presentDatePicker() async {
-    
     final now = DateTime.now();
     final pickedDate = await showDatePicker(
       context: context,
@@ -61,7 +65,7 @@ class _TaskFormState extends State<TaskForm> {
             onPressed: () {
               Navigator.pop(ctx);
             },
-            child: const Text('Okay'),
+            child: const Text('OK'),
           ),
         ],
       ),
@@ -74,7 +78,7 @@ class _TaskFormState extends State<TaskForm> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Task'),
+        title: Text(widget.isEditing ? 'Edit Task' : 'Add Task'),
         backgroundColor: const Color(0xFFE94E97),
       ),
       body: Padding(
@@ -98,11 +102,26 @@ class _TaskFormState extends State<TaskForm> {
             ),
             const SizedBox(height: 10),
 
+            // Description Input
+            TextFormField(
+              controller: descriptionController,
+              decoration: InputDecoration(
+                hintText: 'Enter task description',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(18),
+                  borderSide: BorderSide.none,
+                ),
+                fillColor: Colors.pink.withOpacity(0.1),
+                filled: true,
+                prefixIcon: const Icon(Icons.description),
+              ),
+            ),
+            const SizedBox(height: 10),
+
             // Date Picker Row
             GestureDetector(
               onTap: _presentDatePicker,
               child: AbsorbPointer(
-               
                 child: TextField(
                   decoration: InputDecoration(
                     filled: true,
@@ -124,15 +143,19 @@ class _TaskFormState extends State<TaskForm> {
             // Save Button
             ElevatedButton(
               onPressed: () {
-                if (nameController.text.trim().isEmpty ||  _selectedDate == null) {
+                if (nameController.text.trim().isEmpty || _selectedDate == null) {
                   _showInvalidInputDialog();
                   return;
-                } 
+                }
 
-               
-                widget.onSaveTask(nameController.text, _selectedDate!);
+                // Pass name, description, and date to onSaveTask callback
+              widget.onSaveTask(
+                  nameController.text.trim(),
+                  _selectedDate!,
+                  descriptionController.text.trim().isEmpty ? null : descriptionController.text.trim(),
+                );
 
-               Navigator.pop(context, 'Task saved successfully!');
+                Navigator.pop(context, 'Task saved successfully!');
               },
               style: ElevatedButton.styleFrom(
                 shape: const StadiumBorder(),
