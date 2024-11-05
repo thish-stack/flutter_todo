@@ -68,8 +68,8 @@ class DatabaseHelper {
         name: maps[i][DatabaseConstants.columnName],
         completed: maps[i][DatabaseConstants.columnCompleted] == 1,
         date: DateTime.parse(maps[i][DatabaseConstants.columnDate]),
-        description: maps[i]
-            [DatabaseConstants.columnDescription], // Make sure this is correct
+        description: maps[i][DatabaseConstants.columnDescription], 
+        apiId: maps[i][DatabaseConstants.columnApiId],
       );
     });
   }
@@ -84,12 +84,12 @@ class DatabaseHelper {
     );
   }
 
-  Future<void> deleteTask(int id) async {
+  Future<void> deleteTask(String apiId) async {
     final db = await database;
     await db.delete(
       DatabaseConstants.tableName,
-      where: '${DatabaseConstants.columnId} = ?',
-      whereArgs: [id],
+      where: '${DatabaseConstants.columnApiId} = ?',
+      whereArgs: [apiId],
     );
   }
 

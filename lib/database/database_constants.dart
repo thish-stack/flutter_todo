@@ -10,4 +10,5 @@ class DatabaseConstants {
   static const String columnCompleted = 'completed';
   static const String columnDate = 'date';
   static const String columnDescription = 'description'; // New column
+  static const String columnApiId = 'apiId';
 }

@@ -144,7 +144,7 @@ class TodoList extends StatelessWidget {
             ],
           ),
           child: Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: taskCompleted
                   ? const LinearGradient(
