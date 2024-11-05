@@ -9,6 +9,7 @@ import 'package:producthive/pages/task_form.dart';
 import 'package:producthive/services/task_service.dart';
 import 'package:producthive/utils/todo_list.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,9 +20,10 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
-  final TaskService _taskService = TaskService(); 
+  final TaskService _taskService = TaskService();
   final DateFormat formatter = DateFormat.yMMMd();
   final Logger logger = Logger();
+  final keyOne = GlobalKey();
 
   List<Task> toDoList = [];
   bool isLoading = true;
@@ -30,6 +32,11 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadTasks();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => ShowCaseWidget.of(context).startShowCase([
+        keyOne,
+      ]),
+    );
   }
 
   Future<void> _loadTasks() async {
@@ -66,8 +73,8 @@ class _HomePageState extends State<HomePage> {
     await _loadTasks();
   }
 
-  Future<void> updateTask(
-      int index, String updatedTaskName, DateTime date, String? description) async {
+  Future<void> updateTask(int index, String updatedTaskName, DateTime date,
+      String? description) async {
     Task updatedTask = toDoList[index];
     updatedTask.name = updatedTaskName;
     updatedTask.date = date;
@@ -103,7 +110,7 @@ class _HomePageState extends State<HomePage> {
           textColor: Colors.white,
         );
       } catch (e) {
-        logger.e('Error deleting task', error:e);
+        logger.e('Error deleting task', error: e);
       }
     } else {
       logger.w('Task does not have a valid API ID.');
@@ -123,7 +130,7 @@ class _HomePageState extends State<HomePage> {
         textColor: Colors.white,
       );
     } catch (e) {
-      logger.e('Error deleting all tasks',error:e);
+      logger.e('Error deleting all tasks', error: e);
     }
   }
 
@@ -137,7 +144,7 @@ class _HomePageState extends State<HomePage> {
       await _dbHelper.updateTask(toDoList[index]);
       await _loadTasks();
     } catch (e) {
-      logger.e('Error updating task completion status', error:e);
+      logger.e('Error updating task completion status', error: e);
     }
   }
 
@@ -221,129 +228,136 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('Todo'),
-        actions: [
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              if (value == 'Clear All') {
-                deleteConfirmDialog(context, "all");
-              }
-            },
-            itemBuilder: (BuildContext context) {
-              return [
-                const PopupMenuItem<String>(
-                  value: 'Clear All',
-                  child: Text('Clear All'),
-                ),
-              ];
-            },
-          ),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: _loadTasks,
-        child: isLoading
-            ? buildShimmer()
-            : toDoList.isEmpty
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 1, bottom: 130),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Lottie.asset(
-                            'assets/taskloading.json',
-                            width: MediaQuery.of(context).size.width,
-                            height: MediaQuery.of(context).size.height * 0.4,
-                            fit: BoxFit.contain,
-                          ),
-                          const SizedBox(height: 0),
-                          const Text(
-                            'No tasks available, add a new task!',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.black54,
-                              fontWeight: FontWeight.bold,
+    Widget build(BuildContext context) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          title: const Text('Todo'),
+          actions: [
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'Clear All') {
+                  deleteConfirmDialog(context, "all");
+                }
+              },
+              itemBuilder: (BuildContext context) {
+                return [
+                  const PopupMenuItem<String>(
+                    value: 'Clear All',
+                    child: Text('Clear All'),
+                  ),
+                ];
+              },
+            ),
+          ],
+        ),
+        body: RefreshIndicator(
+          onRefresh: _loadTasks,
+          child: isLoading
+              ? buildShimmer()
+              : toDoList.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 1, bottom: 130),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Lottie.asset(
+                              'assets/taskloading.json',
+                              width: MediaQuery.of(context).size.width,
+                              height: MediaQuery.of(context).size.height * 0.4,
+                              fit: BoxFit.contain,
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                : ListView.builder(
-                    padding: EdgeInsets.zero,
-                    itemCount: toDoList.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return TodoList(
-                        taskName: toDoList[index].name,
-                        taskCompleted: toDoList[index].completed,
-                        onChanged: (value) => checkBoxChanged(index),
-                        deleteFunction: (context) => deleteTask(index),
-                        editFunction: (context) async {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => TaskForm(
-                                isEditing: true,
-                                onSaveTask: (updatedTaskName, updatedDate, description) =>
-                                    updateTask(index, updatedTaskName, updatedDate, description),
-                                initialTaskName: toDoList[index].name,
-                                initialDate: toDoList[index].date,
-                                initialDescription: toDoList[index].description,
+                            const SizedBox(height: 0),
+                            const Text(
+                              'No tasks available, add a new task!',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.black54,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          );
-                          _showToastIfTaskSaved(result);
-                        },
-                        taskDate: formatter.format(toDoList[index].date),
-                        taskDescription: toDoList[index].description,
-                      );
-                    },
-                  ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: const LinearGradient(
-              colors: [Color(0xFFE2267F), Color(0xFFE94E97), Color(0xFFEF6DAB)],
-              begin: Alignment.bottomCenter,
-              end: Alignment.topCenter,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.pink.withOpacity(0.3),
-                blurRadius: 10,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.add,
-            color: Colors.white,
-          ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: EdgeInsets.zero,
+                      itemCount: toDoList.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return TodoList(
+                          taskName: toDoList[index].name,
+                          taskCompleted: toDoList[index].completed,
+                          onChanged: (value) => checkBoxChanged(index),
+                          deleteFunction: (context) => deleteTask(index),
+                          editFunction: (context) async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => TaskForm(
+                                  isEditing: true,
+                                  onSaveTask: (updatedTaskName, updatedDate,
+                                          description) =>
+                                      updateTask(index, updatedTaskName,
+                                          updatedDate, description),
+                                  initialTaskName: toDoList[index].name,
+                                  initialDate: toDoList[index].date,
+                                  initialDescription: toDoList[index].description,
+                                ),
+                              ),
+                            );
+                            _showToastIfTaskSaved(result);
+                          },
+                          taskDate: formatter.format(toDoList[index].date),
+                          taskDescription: toDoList[index].description,
+                        );
+                      },
+                    ),
         ),
-        onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TaskForm(
-                isEditing: false,
-                onSaveTask: (newTaskName, newDate, description) =>
-                    saveNewTask(newTaskName, newDate, description),
+        floatingActionButton:  Showcase(
+          key: keyOne,
+          description: 'Tap here to add a new task',
+
+          child:FloatingActionButton(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                colors: [Color(0xFFE2267F), Color(0xFFE94E97), Color(0xFFEF6DAB)],
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.pink.withOpacity(0.3),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ],
             ),
-          );
-          _showToastIfTaskSaved(result);
-        },
-      ),
-    );
-  }
+            child: const Icon(
+              Icons.add,
+              color: Colors.white,
+            ),
+          ),
+          onPressed: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => TaskForm(
+                  isEditing: false,
+                  onSaveTask: (newTaskName, newDate, description) =>
+                      saveNewTask(newTaskName, newDate, description),
+                ),
+              ),
+            );
+            _showToastIfTaskSaved(result);
+          },
+        ),
+      )
+      );
+    }
 }

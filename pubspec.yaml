@@ -46,6 +46,7 @@ dependencies:
   shimmer: ^3.0.0
   http: ^1.2.2
   logger: ^2.4.0
+  showcaseview: ^3.0.0
 
 
 flutter_native_splash:
