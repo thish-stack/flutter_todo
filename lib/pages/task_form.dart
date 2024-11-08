@@ -49,6 +49,9 @@ class _TaskFormState extends State<TaskForm> {
       setState(() {
         _selectedDate = pickedDate;
       });
+
+          // Dismiss keyboard after selecting the date
+    FocusScope.of(context).requestFocus(FocusNode());
     }
   }
 
