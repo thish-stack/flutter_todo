@@ -79,8 +79,8 @@ class DatabaseHelper {
     await db.update(
       DatabaseConstants.tableName,
       task.toMap(),
-      where: '${DatabaseConstants.columnId} = ?',
-      whereArgs: [task.id],
+      where: '${DatabaseConstants.columnApiId} = ?',
+      whereArgs: [task.apiId],
     );
   }
 

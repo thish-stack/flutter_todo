@@ -92,8 +92,9 @@ class _HomePageState extends State<HomePage> {
 
     if (apiId != null) {
       try {
-        await _taskService.deleteTaskFromAPI(apiId);
         await _loadTasks();
+        await _taskService.deleteTaskFromAPI(apiId);
+        
 
         Fluttertoast.showToast(
           msg: "Task deleted successfully!",
